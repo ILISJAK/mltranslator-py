@@ -21,11 +21,11 @@ env/
 .DS_Store
 
 # Model training outputs
-language-translation-project/results/
+results/
 
 # Dataset files (if saved to disk)
-language-translation-project/data/train_dataset/
-language-translation-project/data/test_dataset/
+data/train_dataset/
+data/test_dataset/
 
 # Log files
 *.log

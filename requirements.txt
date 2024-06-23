@@ -1,4 +1,8 @@
-transformers
-datasets
-torch
-flask
+transformers==4.29.2
+datasets==2.11.0
+torch==2.3.1+cu118
+torchvision==0.16.2+cu118
+torchaudio==2.3.1+cu118
+flask==2.2.2
+sentencepiece==0.1.96
+numpy==1.26.0

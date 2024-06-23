@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Language Translator</title>
+  </head>
+  <body>
+    <h1>Language Translator</h1>
+    <form method="POST">
+      <textarea name="text" rows="4" cols="50" placeholder="Enter text here..."></textarea><br>
+      <select name="direction">
+        <option value="hr-en">Croatian to English</option>
+        <option value="en-hr">English to Croatian</option>
+      </select><br>
+      <input type="submit" value="Translate">
+    </form>
+    {% if translation %}
+      <h2>Translation:</h2>
+      <p>{{ translation }}</p>
+    {% endif %}
+  </body>
+</html>
