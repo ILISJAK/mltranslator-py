@@ -1,22 +1,39 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>Language Translator</title>
-  </head>
-  <body>
-    <h1>Language Translator</h1>
-    <form method="POST">
-      <textarea name="text" rows="4" cols="50" placeholder="Enter text here..."></textarea><br>
-      <select name="direction">
-        <option value="hr-en">Croatian to English</option>
-        <option value="en-hr">English to Croatian</option>
-      </select><br>
-      <input type="submit" value="Translate">
-    </form>
-    {% if translation %}
-      <h2>Translation:</h2>
-      <p>{{ translation }}</p>
-    {% endif %}
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Translator</h1>
+        <div class="form-group">
+            <label for="src_lang">Source Language:</label>
+            <select id="src_lang">
+                <option value="en_XX">English</option>
+                <option value="hr_HR">Croatian</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="tgt_lang">Target Language:</label>
+            <select id="tgt_lang">
+                <option value="hr_HR">Croatian</option>
+                <option value="en_XX">English</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <textarea id="text" rows="4" cols="50" placeholder="Enter text here..."></textarea>
+        </div>
+        <button id="translateBtn" class="btn"><i class="fas fa-language"></i> Translate</button>
+        <div class="result">
+            <h2>Translation:</h2>
+            <div id="translation"></div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</body>
 </html>

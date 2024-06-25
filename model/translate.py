@@ -1,27 +1,44 @@
-from transformers import MarianMTModel, MarianTokenizer
+from transformers import MBartForConditionalGeneration, MBart50Tokenizer
+import torch
 
-# Load the tokenizer and model for Croatian to English
-tokenizer_hr_en = MarianTokenizer.from_pretrained("Helsinki-NLP/opus-mt-hr-en")
-model_hr_en = MarianMTModel.from_pretrained("Helsinki-NLP/opus-mt-hr-en")
+def translate_batch(texts, tokenizer, model, src_lang, tgt_lang):
+    # Set the tokenizer source and target language codes
+    tokenizer.src_lang = src_lang
+    tokenizer.tgt_lang = tgt_lang
 
-# Load the tokenizer and model for English to Croatian
-tokenizer_en_hr = MarianTokenizer.from_pretrained("Helsinki-NLP/opus-mt-en-hr")
-model_en_hr = MarianMTModel.from_pretrained("Helsinki-NLP/opus-mt-en-hr")
+    # Tokenize the input texts
+    inputs = tokenizer(texts, return_tensors="pt", padding=True, truncation=True, max_length=128)
+    
+    # Move the inputs to the same device as the model
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    inputs = {key: value.to(device) for key, value in inputs.items()}
 
-def translate(text, tokenizer, model):
-    inputs = tokenizer(text, return_tensors="pt", padding=True)
-    translated_tokens = model.generate(**inputs)
-    translation = tokenizer.decode(translated_tokens[0], skip_special_tokens=True)
-    return translation
+    # Generate translations with forced_bos_token_id
+    translated_tokens = model.generate(**inputs, forced_bos_token_id=tokenizer.lang_code_to_id[tgt_lang])
+    translations = tokenizer.batch_decode(translated_tokens, skip_special_tokens=True)
+    
+    return translations
 
-# Example translation from Croatian to English
-text_hr = "Kako si?"
-translation_en = translate(text_hr, tokenizer_hr_en, model_hr_en)
-print(f"Croatian: {text_hr}")
-print(f"English: {translation_en}")
+def main():
+    # Load the tokenizer and model from the saved directory
+    model_name = "./results"
+    tokenizer = MBart50Tokenizer.from_pretrained(model_name)
+    model = MBartForConditionalGeneration.from_pretrained(model_name).to('cuda' if torch.cuda.is_available() else 'cpu')
 
-# Example translation from English to Croatian
-text_en = "How are you?"
-translation_hr = translate(text_en, tokenizer_en_hr, model_en_hr)
-print(f"English: {text_en}")
-print(f"Croatian: {translation_hr}")
+    # Example batch of English sentences to translate to Croatian
+    texts_en = ["How are you?", "What is your name?", "Where are you from?"]
+
+    # Translate English to Croatian
+    translations_hr = translate_batch(texts_en, tokenizer, model, src_lang="en_XX", tgt_lang="hr_HR")
+    for text, translation in zip(texts_en, translations_hr):
+        print(f"English: {text}")
+        print(f"Croatian: {translation}")
+    
+    # Translate Croatian back to English to verify
+    translations_en = translate_batch(translations_hr, tokenizer, model, src_lang="hr_HR", tgt_lang="en_XX")
+    for text, translation in zip(translations_hr, translations_en):
+        print(f"Croatian: {text}")
+        print(f"English: {translation}")
+
+if __name__ == "__main__":
+    main()

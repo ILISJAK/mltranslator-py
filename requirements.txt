@@ -6,3 +6,4 @@ torchaudio==2.3.1+cu118
 flask==2.2.2
 sentencepiece==0.1.96
 numpy==1.26.0
+sacremoses
