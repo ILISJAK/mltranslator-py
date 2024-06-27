@@ -4,6 +4,12 @@ __pycache__/
 *.pyo
 *.pyd
 
+# Unit testing
+tests/
+
+# Ignore cache files
+*.arrow
+
 # Virtual environment
 venv/
 env/
@@ -22,6 +28,7 @@ env/
 
 # Model training outputs
 results/
+logs/
 
 # Dataset files (if saved to disk)
 data/train_dataset/
@@ -54,3 +61,4 @@ coverage.xml
 # Other
 *.swp
 *.swo
+*.png

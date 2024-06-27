@@ -1,44 +1,37 @@
 from transformers import MBartForConditionalGeneration, MBart50Tokenizer
 import torch
 
-def translate_batch(texts, tokenizer, model, src_lang, tgt_lang):
-    # Set the tokenizer source and target language codes
+def translate_text(text, tokenizer, model, src_lang, tgt_lang, max_length=512):
     tokenizer.src_lang = src_lang
-    tokenizer.tgt_lang = tgt_lang
+    inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=max_length)
+    inputs = {k: v.to(model.device) for k, v in inputs.items()}
 
-    # Tokenize the input texts
-    inputs = tokenizer(texts, return_tensors="pt", padding=True, truncation=True, max_length=128)
-    
-    # Move the inputs to the same device as the model
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    inputs = {key: value.to(device) for key, value in inputs.items()}
+    translated_tokens = model.generate(**inputs, forced_bos_token_id=tokenizer.lang_code_to_id[tgt_lang], max_length=max_length)
+    translated_text = tokenizer.decode(translated_tokens[0], skip_special_tokens=True)
 
-    # Generate translations with forced_bos_token_id
-    translated_tokens = model.generate(**inputs, forced_bos_token_id=tokenizer.lang_code_to_id[tgt_lang])
-    translations = tokenizer.batch_decode(translated_tokens, skip_special_tokens=True)
-    
-    return translations
+    return translated_text
+
+def translate_long_text(text, tokenizer, model, src_lang, tgt_lang, max_length=512):
+    sentences = text.split('. ')
+    translations = []
+
+    for sentence in sentences:
+        if sentence.strip():
+            translation = translate_text(sentence.strip() + '.', tokenizer, model, src_lang, tgt_lang, max_length)
+            translations.append(translation)
+
+    return ' '.join(translations)
 
 def main():
-    # Load the tokenizer and model from the saved directory
-    model_name = "./results"
-    tokenizer = MBart50Tokenizer.from_pretrained(model_name)
-    model = MBartForConditionalGeneration.from_pretrained(model_name).to('cuda' if torch.cuda.is_available() else 'cpu')
+    tokenizer = MBart50Tokenizer.from_pretrained("./results")
+    model = MBartForConditionalGeneration.from_pretrained("./results").to('cuda' if torch.cuda.is_available() else 'cpu')
 
-    # Example batch of English sentences to translate to Croatian
-    texts_en = ["How are you?", "What is your name?", "Where are you from?"]
+    source_text = "Ako slika vrijedi tisuću riječi, koliko vrijedi ljudima koji ne vide? Bez riječi, osobama s posebnim potrebama u vidu lako je propustiti ključne informacije ili biti frustrirani iskustvom. Zamjenski tekst (zamjenski tekst) opisni je tekst koji prenosi značenje i kontekst vizualne stavke u digitalnoj postaci, npr. na aplikaciji ili web-stranici. Kada čitači zaslona Microsoft pripovjedač, JAWS i NVDA dostignu sadržaj pomoću zamjenskog teksta, zamjenski tekst čita se naglas da bi korisnici mogli bolje razumjeti što se nalazi na zaslonu. Dobro napisan, opisni zamjenski tekst dramatično smanjuje dvosmislenost i poboljšava korisničko iskustvo. U ovoj se temi opisuje razumijevanje, pisanje i korištenje učinkovitog zamjenskog teksta u Microsoft 365 proizvodima."
+    src_lang = "hr_HR"
+    tgt_lang = "en_XX"
 
-    # Translate English to Croatian
-    translations_hr = translate_batch(texts_en, tokenizer, model, src_lang="en_XX", tgt_lang="hr_HR")
-    for text, translation in zip(texts_en, translations_hr):
-        print(f"English: {text}")
-        print(f"Croatian: {translation}")
-    
-    # Translate Croatian back to English to verify
-    translations_en = translate_batch(translations_hr, tokenizer, model, src_lang="hr_HR", tgt_lang="en_XX")
-    for text, translation in zip(translations_hr, translations_en):
-        print(f"Croatian: {text}")
-        print(f"English: {translation}")
+    translation_en = translate_long_text(source_text, tokenizer, model, src_lang, tgt_lang)
+    print(f"Croatian: {source_text} -> English: {translation_en}")
 
 if __name__ == "__main__":
     main()
